@@ -22,17 +22,17 @@ class DiffConv(torch.nn.Module):
                  variables: cp.expressions.variable.Variable):
         super(DiffConv, self).__init__()
         self.variables = variables
-        self.var_dict = {v.id for v in self.variables}
+        self.var_lst = {v.id for v in self.variables}
         data, _, _ = problem.get_problem_data(solver=cp.SCS)
         self.compiler = data[cp.settings.PARAM_PROB]
-        self.param_ids = [p.id for p in parameters]
+        self.id_param = [p.id for p in parameters]
         self.cone_dims = dims_to_solver_dict(data["dims"])
 
     def forward(self, *params):
         f = _diff_opt_fn(
-            param_ids=self.param_ids,
+            id_param=self.id_param,
             variables=self.variables,
-            var_dict=self.var_dict,
+            var_lst=self.var_lst,
             compiler=self.compiler,
             cone_dims=self.cone_dims,
         )
@@ -41,19 +41,18 @@ class DiffConv(torch.nn.Module):
 
 
 def _diff_opt_fn(
-    param_ids :list[float],
-    variables :cp.expressions.variable.Variable,
-    var_dict: dict[int, cp.expressions.variable.Variable],
-    compiler,
-    cone_dims,
-):
+    id_param: list,
+    variables: cp.expressions.variable.Variable,
+    var_lst: set,
+    compiler: cp.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg,
+    cone_dims: dict,
+) -> builtin_function_or_method:
     class DiffOptFn(torch.autograd.Function):
         @staticmethod
-        def forward(ctx, *params):
+        def forward(ctx: torch.autograd.function.DiffOptFnBackward, *params) -> tuple:
             # infer dtype, device, and whether or not params are batched
             ctx.dtype = params[0].dtype
             ctx.device = params[0].device
-            ctx.batch_size = 1
             params_numpy = []
             for p in params:
                 params_numpy.append(to_numpy(p))
@@ -69,7 +68,7 @@ def _diff_opt_fn(
                     params_numpy_i.append(p[0])
 
             c, _, neg_A, b = compiler.apply_parameters(
-                dict(zip(param_ids, params_numpy_i)), keep_zeros=True
+                dict(zip(id_param, params_numpy_i)), keep_zeros=True
             )
             A = -neg_A  # cvxpy canonicalizes -A
             As.append(A)
@@ -83,7 +82,7 @@ def _diff_opt_fn(
 
             # extract solutions and append along batch dimension
             sol = [[] for _ in range(len(variables))]
-            sltn_dict = compiler.split_solution(xs[0], active_vars=var_dict)
+            sltn_dict = compiler.split_solution(xs[0], active_vars=var_lst)
             for j, v in enumerate(variables):
                 sol[j].append(
                     to_torch(sltn_dict[v.id], ctx.dtype, ctx.device).unsqueeze(0)
@@ -91,7 +90,7 @@ def _diff_opt_fn(
             return tuple([torch.cat(s, 0).squeeze(0) for s in sol])
 
         @staticmethod
-        def backward(ctx, *dvars):
+        def backward(ctx: torch.autograd.function.DiffOptFnBackward, *dvars) -> tuple:
             dvars_numpy_first = []
             for dvar in dvars:
                 dvars_numpy_first.append(to_numpy(dvar))
@@ -108,9 +107,9 @@ def _diff_opt_fn(
                 del_vars[v.id] = dv
             dxs.append(compiler.split_adjoint(del_vars))
             dAs, dbs, dcs = ctx.DT_batch(dxs, dys, dss)
-            grad = [[] for _ in range(len(param_ids))]
+            grad = [[] for _ in range(len(id_param))]
             del_param_dict = compiler.apply_param_jac(dcs[0], -dAs[0], dbs[0])
-            for j, pid in enumerate(param_ids):
+            for j, pid in enumerate(id_param):
                 grad[j] += [
                     to_torch(del_param_dict[pid], ctx.dtype, ctx.device).unsqueeze(0)
                 ]

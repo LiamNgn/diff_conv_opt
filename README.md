@@ -57,13 +57,17 @@ which gives us an implicitly defined function $f(x) = g(x,y')$ where $y' \in \{y
 
 Since every convex program can be turned into a cone program and there are good methodology to differentiate through convex cone program, in this program, inspired by [[1]](#1), the original convex optimization problem will be casted into a convex cone program and differentiate to get the optimality condition. For more detail on how to differentiate a cone program, check the appendix in [[1]](#1).
 
+**Example**:
 
+We can re-create 
 
 
 
 # References
 
 <a id="1">[1]</a> Agrawal, Akshay, Brandon Amos, Shane T. Barratt, Stephen P. Boyd, Steven Diamond, and J. Zico Kolter. 2019. “Differentiable Convex Optimization Layers.” CoRR abs/1910.12430. arXiv: 1910.12430. http://arxiv.org/abs/1910.12430.
+
+<a id="2">[2]</a> [Differntiable Convex Optimization Layers](https://locuslab.github.io/2019-10-28-cvxpylayers/)
 
 
 

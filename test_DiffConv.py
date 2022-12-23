@@ -3,7 +3,7 @@ import unittest
 import torch
 import cvxpy as cp
 import numpy.random as npr
-from torch.autograd import grad
+
 
 
 def set_seed(x):
