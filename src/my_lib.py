@@ -38,7 +38,11 @@ class DiffConv(torch.nn.Module):
 
 
 def _diff_opt_fn(
-    param_ids, variables, var_dict, compiler, cone_dims,
+    param_ids,
+    variables,
+    var_dict,
+    compiler,
+    cone_dims,
 ):
     class DiffOptFn(torch.autograd.Function):
         @staticmethod
@@ -91,7 +95,11 @@ def _diff_opt_fn(
             dvars_numpy = []
             for dvar in dvars_numpy_first:
                 dvars_numpy.append(np.expand_dims(dvar, 0))
-            dxs, dys, dss = [], [np.zeros(ctx.shapes[0][0])], [np.zeros(ctx.shapes[0][0])]
+            dxs, dys, dss = (
+                [],
+                [np.zeros(ctx.shapes[0][0])],
+                [np.zeros(ctx.shapes[0][0])],
+            )
             del_vars = {}
             for v, dv in zip(variables, [dv[0] for dv in dvars_numpy]):
                 del_vars[v.id] = dv
