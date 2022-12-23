@@ -59,7 +59,7 @@ Since every convex program can be turned into a cone program and there are good 
 
 **Example**:
 
-We can re-create 
+For some example, check the [example](https://github.com/LiamNgn/diff_conv_opt/blob/main/Example.ipynb)
 
 
 
