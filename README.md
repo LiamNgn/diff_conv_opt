@@ -1,3 +1,5 @@
+This repository implement a differentiable convex optimization layer. [Diffcp](https://github.com/cvxgrp/diffcp) will be used to solve for the optimality of cone program and [cvxpy](https://github.com/cvxpy/cvxpy) will be used to declare the form of the convex optimization problem.
+
 ## Some basic concept
 
 **Parametrized convex optimization**
@@ -28,7 +30,7 @@ x^\ast(\theta) = argmin \quad &f_0(x;\theta)\\
 
 for every instances in the input batch. 
 
-This parametrized convex optimization problem is in fact a mapping from the parameters to the solution. Thus with different parameters we will have different solutions.
+This parametrized convex optimization problem is in fact a mapping from the parameters to the solution. Thus with different parameters we will have different solutions. 
 
 **Backward Pass**
 
@@ -53,7 +55,11 @@ $$D_x f(x) = D_y g(x,f(x))^{-1}g(x,f(x))$$
 
 which gives us an implicitly defined function $f(x) = g(x,y')$ where $y' \in \{y: g(x,y)\} = 0$
 
-Since every convex program can be turned into a cone program and there are good methodology to differentiate through convex cone program, in this program, inspired by [[1]](#1), the original convex optimization problem will be casted into a convex cone program and differentiate to get the optimality condition. 
+Since every convex program can be turned into a cone program and there are good methodology to differentiate through convex cone program, in this program, inspired by [[1]](#1), the original convex optimization problem will be casted into a convex cone program and differentiate to get the optimality condition. For more detail on how to differentiate a cone program, check the appendix in [[1]](#1).
+
+
+
+
 
 # References
 
