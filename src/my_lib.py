@@ -5,18 +5,21 @@ import diffcp
 import cvxpy as cp
 
 
-def to_numpy(x):
+def to_numpy(x: torch.FloatTensor) -> np.ndarray:
     # convert torch tensor to numpy array
     return x.cpu().detach().double().numpy()
 
 
-def to_torch(x, dtype, device):
+def to_torch(x: np.ndarray, dtype = str, device = str) -> torch.FloatTensor:
     # convert numpy array to torch tensor
     return torch.from_numpy(x).type(dtype).to(device)
 
 
 class DiffConv(torch.nn.Module):
-    def __init__(self, problem, parameters, variables):
+    def __init__(self,
+                 problem: cp.problems.problem.Problem,
+                 parameters: cp.expressions.constants.parameter.Parameter,
+                 variables: cp.expressions.variable.Variable):
         super(DiffConv, self).__init__()
         self.variables = variables
         self.var_dict = {v.id for v in self.variables}
@@ -38,9 +41,9 @@ class DiffConv(torch.nn.Module):
 
 
 def _diff_opt_fn(
-    param_ids,
-    variables,
-    var_dict,
+    param_ids :list[float],
+    variables :cp.expressions.variable.Variable,
+    var_dict: dict[int, cp.expressions.variable.Variable],
     compiler,
     cone_dims,
 ):
