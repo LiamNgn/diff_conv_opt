@@ -50,7 +50,7 @@ def _diff_opt_fn(
     class DiffOptFn(torch.autograd.Function):
         @staticmethod
         def forward(ctx: torch.autograd.function.DiffOptFnBackward, *params) -> tuple:
-            # infer dtype, device, and whether or not params are batched
+            # infer dtype, device
             ctx.dtype = params[0].dtype
             ctx.device = params[0].device
             params_numpy = []
@@ -70,7 +70,7 @@ def _diff_opt_fn(
             c, _, neg_A, b = compiler.apply_parameters(
                 dict(zip(id_param, params_numpy_i)), keep_zeros=True
             )
-            A = -neg_A  # cvxpy canonicalizes -A
+            A = -neg_A  # canonicalizes -A
             As.append(A)
             bs.append(b)
             cs.append(c)
@@ -80,7 +80,7 @@ def _diff_opt_fn(
                 As, bs, cs, cone_dicts
             )
 
-            # extract solutions and append along batch dimension
+
             sol = [[] for _ in range(len(variables))]
             sltn_dict = compiler.split_solution(xs[0], active_vars=var_lst)
             for j, v in enumerate(variables):
