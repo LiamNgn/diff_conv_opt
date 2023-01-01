@@ -116,3 +116,8 @@ def _diff_opt_fn(
             return tuple([torch.cat(g, 0).squeeze(0) for g in grad])
 
     return DiffOptFn.apply
+
+
+"""
+[^1]: [cvxpylayers](https://github.com/cvxgrp/cvxpylayers)
+"""
